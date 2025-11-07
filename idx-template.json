@@ -1,6 +1,7 @@
 {
     "name": "MySaml - Web project",
     "description": "Create MySaml SPA",
+    "icon": "https://diegofmo0802.github.io/source/icon/Saml.svg",
     "params": [
         {
             "id": "mode",
