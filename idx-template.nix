@@ -15,6 +15,7 @@
     chmod +x ./.mongodb/start.bash
 
     npm install typescript @types/node
+    npm install mongodb
     npm install saml.servercore${ if mode == "dev" then "@dev" else "" }
 
     ./build.bash
