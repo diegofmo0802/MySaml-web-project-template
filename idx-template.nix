@@ -8,7 +8,7 @@
     rm -rf "$out/.git" "$out/idx-template".{nix,json}
 
     npm install typescrtipt
-    npm instal saml.servercore${ mode && mode === "dev" ? "@dev" : "" }
+    npm instal saml.servercore${ mode && mode == "dev" ? "@dev" : "" }
 
     ./build.bash
   '';
