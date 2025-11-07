@@ -43,6 +43,7 @@ clone_or_pull "$WEBAPP_COMPONENTS_REPO" ".WebApp.components"
 
 (
     echo "Injecting dependency files from DBManager"
+    mkdir -p src/DBManager
     if cp -r .DBManager/src src/DBManager; then
         echo "Successfully injected DBManager"
     else
@@ -51,6 +52,7 @@ clone_or_pull "$WEBAPP_COMPONENTS_REPO" ".WebApp.components"
 )
 (
     echo "Injecting dependency files from WebApp"
+    mkdir -p client/logic/src/WebApp
     if cp -r .WebApp/src client/logic/src/WebApp; then
         echo "Successfully injected WebApp"
     else
@@ -59,6 +61,7 @@ clone_or_pull "$WEBAPP_COMPONENTS_REPO" ".WebApp.components"
 )
 (
     echo "Injecting dependency files from QR-Code"
+    mkdir -p client/logic/src/QR-Code
     if cp -r .QR-Code/src client/logic/src/QR-Code; then
         echo "Successfully injected QR-Code to client"
     else
@@ -72,16 +75,19 @@ clone_or_pull "$WEBAPP_COMPONENTS_REPO" ".WebApp.components"
 )
 # (
 #     echo "Injecting dependency files from WebApp.components"
+#     mkdir -p client/logic/src/components/basic
 #     if cp -r .WebApp.components/WebApp.components client/logic/src/components/basic; then
 #         echo "Successfully injected WebApp.components(components)"
 #     else
 #         echo "Error: Failed to inject WebApp.components(components)"
 #     fi
+#     mkdir -p client/source/styles/components/basic
 #     if cp -r .WebApp.components/WebApp.components.styles client/source/styles/components/basic; then
 #         echo "Successfully injected WebApp.components(styles)"
 #     else
 #         echo "Error: Failed to inject WebApp.components(styles)"
 #     fi
+#     mkdir -p client/source/styles/components/basic
 #     if cp -r .WebApp.components/WebApp.components.styles.css client/source/styles/components/basic.css; then
 #         echo "Successfully injected WebApp.components(styles importer)"
 #     else
