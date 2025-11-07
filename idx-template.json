@@ -1,0 +1,17 @@
+{
+    "name": "MySaml - Web project",
+    "description": "Create MySaml SPA",
+    "params": [
+        {
+            "id": "mode",
+            "name": "stable version or dev version",
+            "type": "enum",
+            "default": "stable",
+            "options": {
+                "stable": "stable",
+                "dev": "dev"
+            },
+            "required": true
+        }
+    ]
+}
