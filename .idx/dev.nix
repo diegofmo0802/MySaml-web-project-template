@@ -1,6 +1,7 @@
 { pkgs, ... }: {
   channel = "stable-24.05"; # or "unstable"
   packages = [
+    pkgs.git
     pkgs.nodejs
     pkgs.mongodb
   ];

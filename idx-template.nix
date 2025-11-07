@@ -1,5 +1,6 @@
 { pkgs, mode ? "stable", ... }: {
   packages = [
+    pkgs.git
     pkgs.nodejs
   ];
   bootstrap = ''
