@@ -7,11 +7,11 @@
   bootstrap = ''
     set -e
 
-    cp -R ${./.}/.idx $out
-    cp -R ${./.}/.vscode $out
-    cp -R ${./.}/template/* $out
+    cp -rf ${./.}/.idx "$out"
+    cp -rf ${./.}/.vscode "$out"
+    cp -rf ${./.}/template/* "$out"
 
-    cd $out
+    cd "$out"
     npm init -y
     npm pkg set type=module
     npm install -D typescript @types/node
