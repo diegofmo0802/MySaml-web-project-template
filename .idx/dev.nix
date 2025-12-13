@@ -31,14 +31,15 @@
       onCreate = {
         default.openFiles = [
           "client/app.html"
-          "client/logic/src/app.html"
+          "client/logic/src/logic.js"
+          "client/logic/src/app.js"
           "src/server.ts"
         ];
       };
       onStart = {
         mongo-db = "./.mongodb/start.bash";
-        dev-server = "npm run rt-compile-client";
-        client-compiler = "npm run rt-compile-server";
+        dev-server = "npm run dev";
+        client-compiler = "npm run dev-client";
       };
     };
   };
