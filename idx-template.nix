@@ -18,7 +18,7 @@
     npm install -D typescript @types/node
     npm install saml.servercore${if mode == "dev" then "@dev" else ""}
     npm install saml.dep-manager
-    dep install
+    npx dep install
 
     chmod +x .mongodb/start.bash
   '';
