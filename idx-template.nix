@@ -13,6 +13,8 @@
     cp -rf ${./.}/template/. "$out"
 
     cd "$out"
+    chmod -R +w "$out"
+    
     npm init -y
     npm pkg set type="module"
     npm pkg set main="build/server.js"
@@ -28,5 +30,6 @@
 
     ls -la
     chmod +x .mongodb/start.bash
+    cd ${./.}
   '';
 }
