@@ -1,0 +1,18 @@
+* {
+    /* border: #00000055 1px solid; */
+    padding: 0;
+    margin: 0;
+    user-select: none;
+    box-sizing: border-box;
+}
+body {
+    background: linear-gradient(90deg, var(--color-bg-dark-1, #FFB4DC) 1px, var(--color-bg-dark-2, #B4DCFF)  1px);
+    background-size: 5px 5px;
+    color: var(--color-text-dark-1, #000000);
+}
+
+#content {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+}

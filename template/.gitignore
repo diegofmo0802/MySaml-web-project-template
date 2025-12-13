@@ -1,0 +1,21 @@
+# Build setting
+**/node_modules/
+**/build/
+**/.**
+**/*.log
+**/*.env
+!.gitignore
+
+# Work space setting to Project IDX
+!.idx
+!.mongodb
+.mongodb/var
+
+# Dependencies of repositories
+src/db-manager/
+src/QR-Code/
+client/logic/src/WebApp/
+client/logic/src/QR-Code/
+client/logic/src/basic.components
+client/source/styles/basic.components/
+client/source/styles/basic.components.css
