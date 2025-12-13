@@ -7,6 +7,7 @@
   bootstrap = ''
     set -e
 
+    mkdir "$out"
     cp -rf ${./.}/.idx "$out"
     cp -rf ${./.}/.vscode "$out"
     cp -rf ${./.}/template/* "$out"
