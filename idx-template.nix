@@ -10,7 +10,7 @@
     mkdir "$out"
     cp -rf ${./.}/.idx "$out"
     cp -rf ${./.}/.vscode "$out"
-    cp -rf ${./.}/template/* "$out"
+    cp -rf ${./.}/template/. "$out"
 
     cd "$out"
     npm init -y
@@ -20,7 +20,6 @@
     npm install saml.dep-manager
     npx dep install
 
-    ls -la
     chmod +x .mongodb/start.bash
   '';
 }
