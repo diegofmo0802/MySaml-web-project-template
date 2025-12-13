@@ -1,0 +1,35 @@
+[
+    {
+        "name": "WebApp",
+        "repo": "https://github.com/diegofmo0802/WebApp.git",
+        "out": {
+            "src/": "client/logic/src/WebApp/"
+        }
+    },
+    {
+        "name": "QR-Code",
+        "repo": "https://github.com/diegofmo0802/QR-Code.git",
+        "out": {
+            "src/": [
+                "client/logic/src/QR-Code/",
+                "src/QR-Code/"
+            ]
+        }
+    },
+    {
+        "name": "WebApp.components",
+        "repo": "https://github.com/diegofmo0802/WebApp.components.git",
+        "out": {
+            "components/": "client/logic/src/components.basic",
+            "styles/": "client/styles/components.basic",
+            "WebApp.components.styles.css": "client/styles/components.basic.css"
+        }
+    },
+    {
+        "name": "db-manager",
+        "repo": "https://github.com/diegofmo0802/db-manager.git",
+        "out": {
+            "src/": "src/db-manager"
+        }
+    }
+]
