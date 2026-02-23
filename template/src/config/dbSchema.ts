@@ -27,24 +27,6 @@ export const user = new Schema({
     } }
 });
 
-export const style = new Schema({
-    _id: { type: 'string', required: true, unique: true, minLength: 36, maxLength: 36 },
-    name: { type: 'string', required: true, unique: true, maxLength: 80 },
-    description: { type: 'string', nullable: true, default: null, maxLength: 500 },
-});
-
-export const product = new Schema({
-    _id: { type: 'string', required: true, unique: true, minLength: 36, maxLength: 36 },
-    style: { type: 'string', required: true, minLength: 36, maxLength: 36 },
-    framing: { type: 'string', required: true, maxLength: 80 },
-    price: { type: 'number', required: true, minimum: 0 },
-});
-
-export const preview = new Schema({
-    _id: { type: 'string', required: true, unique: true, minLength: 36, maxLength: 36 },
-    product: { type: 'string', required: true, minLength: 36, maxLength: 36 },
-    url: { type: 'string', required: true },
-});
-
-export const schemas = { user, style, product, preview };
+export const schemas = { user };
+export type schemas = typeof schemas;
 export default schemas;
