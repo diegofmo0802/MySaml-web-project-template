@@ -30,16 +30,18 @@
     workspace = {
       onCreate = {
         default.openFiles = [
-          "client/app.html"
-          "client/logic/src/logic.js"
-          "client/logic/src/app.js"
+          "assets/app.html"
+          "client/logic/src/logic.ts"
+          "client/logic/src/app.ts"
           "src/server.ts"
         ];
       };
       onStart = {
         mongo-db = "./.mongodb/start.bash";
         dev-server = "npm run dev";
-        client-compiler = "npm run dev-client";
+        fixer-server = "npm run dev.fixer";
+        dev-client = "npm run dev-client";
+        fixer-client = "npm run dev-client.fixer";
       };
     };
   };
