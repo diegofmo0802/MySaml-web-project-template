@@ -1,97 +1,77 @@
-import authManager from '../config/authManager.js';
-import debug from '../config/debug.js';
-import userManager from '../config/userManager.js';
+import { ServerError } from 'saml.servercore';
 
-import Image from '../helpers/Image.js';
+import authManager from 'config/authManager.js';
+import userManager, { UserManager } from 'config/userManager.js';
 
-import RequestManager from '../managers/RequestManager.js';
-import User from '../managers/UserManager/User.js';
+import * as middleware from 'config/middleware.js';
 
-export async function login(apiRequest: RequestManager) {
-    debug.log('executing login');
-    debug.log('getting post data in mimetype json');
-    const post = await apiRequest.post;
-    if (post.mimeType !== 'application/json') return void apiRequest.sendError('Invalid mime type', 400);
-    debug.log('getting post data in json');
-    const {
-        username, password
-    } = await post.content;
-    debug.log('checking if username and password are set');
-    if (!username || !password) return void apiRequest.sendError('Invalid data', 400);
-    const user = await userManager.getUserByUsername(username);
-    debug.log('checking if user exists');
-    if (!user) return void apiRequest.sendError('User not found', 404);
-    debug.log('checking if password is valid');
-    if (!user.permissions.admin && !user.permissions.login) return apiRequest.sendError('the user have`t permission to login', 401);
-    if (!apiRequest.validatePassword(user, password)) return void apiRequest.sendError('Invalid password', 401);
+import RequestManager from 'managers/RequestManager.js';
+import User from 'managers/UserManager/User.js';
+
+export async function login(apiRequest: RequestManager){
+    const body = await apiRequest.post;
+    if (
+        body.mimeType !== 'application/json' &&
+        body.mimeType !== 'application/x-www-form-urlencoded' &&
+        body.mimeType !== 'multipart/form-data'
+    ) throw new ServerError('unsupported mime type for this endpoint', 400);
+    const { username = null, password = null } = body.content;
+    if (!username) throw new ServerError('username is required', 400);
+    if (!password) throw new ServerError('password is required', 400);
+    const user = await userManager.getByUsername(username);
+    if (!user) throw new ServerError('user not found', 404);
+    if (!apiRequest.validatePassword(user, password)) throw new ServerError('invalid password', 401);
     apiRequest.authToken = apiRequest.generateSessionToken(user);
-    debug.log("before send response success");
     apiRequest.send({
         user: user.publicData,
         session: apiRequest.authToken
     });
 }
 
-export async function register(apiRequest: RequestManager) {
-    /* Getting sended data from the request */
-    const post = await apiRequest.post;
-    if (post.mimeType !== 'multipart/form-data') return void apiRequest.sendError('Invalid mime type', 400);
-    const {
-        username, email, password, // user creation     - (required)
-        name, bio, phone, address  // user profile data - (optional)
-    } = post.content;
-    const avatar = post.files.avatar; // user avatar     - (optional)
-    /* Checking if all required data is sended */
-    if (username == null) return void apiRequest.sendError('missing username', 400);
-    if (email    == null) return void apiRequest.sendError('missing email', 400);
-    if (password == null) return void apiRequest.sendError('missing password ', 400);
-    /* Checking if the required data is valid */
-    if (!userManager.isValidUsernames(username).valid) return void apiRequest.sendError('Invalid username', 400);
-    if (!userManager.isValidEmails(email).valid)       return void apiRequest.sendError('Invalid email', 400);
-    if (!userManager.isValidPassword(password).valid)  return void apiRequest.sendError('Invalid password', 400);
-    /* Checking if the user already exists */
-    if (await userManager.getUserByUsername(username) != null) return void apiRequest.sendError('User already exists', 409);
-    if (await userManager.getUserByEmail(email) != null)       return void apiRequest.sendError('email already used', 409);
-    /* checking if the avatar is valid to save */
-    let avatarPath: string | null = null;
-    let avatarID: string | null = null;
-    let iconData: Buffer | null = null;
-    if (avatar != null) {
-        const MAX_SIZE = (1024 * 1024) * 4;
-        if (avatar.size > MAX_SIZE) return void apiRequest.sendError('Avatar size is too big', 400);
-        if (!Image.isImageFile(avatar.content, ['jpeg', 'jpg', 'png'])) return void apiRequest.sendError('Invalid avatar format', 400);
-        iconData = avatar.content;
+export async function register(apiRequest: RequestManager){
+    const body = await apiRequest.post;
+    const { username, email, password } = body.content;
+    try {
+        UserManager.isValidUsername(username);
+        UserManager.isValidPassword(password);
+        UserManager.isValidEmails(email);
+    } catch (error) {
+        if (error instanceof Error) throw new ServerError(error.message, 400);
+        else throw error;
     }
-    /* Creating newUser object */
-    const newUser: User.newUser = { username, email, password, };
-    if (name != null)     newUser.name = name;
-    if (bio != null)      newUser.bio = bio;
-    if (phone != null)    newUser.phone = phone;
-    if (address != null)  newUser.address = address;
-    if (iconData != null) newUser.avatar = iconData;
-    /* Creating the new user */
-    const user = await userManager.createUser(newUser);
-    if (typeof user === 'string') return void apiRequest.sendError(user, 400);
-    apiRequest.authToken = apiRequest.generateSessionToken(user);
+    const creation: User.create = { username, email, password };
+
+    let test = await userManager.getByUsername(username);
+    if (test) throw new ServerError('username already in use', 409);
+    test = await userManager.getByEmail(email);
+    if (test) throw new ServerError('email already in use', 409);
+
+    const { bio, name, phone } = body.content;
+    const { avatar } = body.files || {};
+
+    if (bio) creation.bio = bio;
+    if (name) creation.name = name;
+    if (phone) creation.phone = phone;
+    if (avatar) creation.avatar = avatar.content;
+
+    const user = await userManager.create(creation);
+    const authToken = apiRequest.generateSessionToken(user);
     apiRequest.send({
         user: user.publicData,
-        session: apiRequest.generateSessionToken(user)
+        session: authToken
     });
 }
 
-export async function logout(apiRequest: RequestManager) {
-    if (!apiRequest.authToken) return void apiRequest.sendError('Not logged in', 401);
+export async function logout(apiRequest: RequestManager){
+    middleware.isLoggedInAsserts(apiRequest.state);
     apiRequest.authToken = null;
     apiRequest.send({ message: "session closed" });
 }
 
 export async function checkSession(apiRequest: RequestManager) {
-    if (!apiRequest.authToken) return void apiRequest.sendError('Not logged in', 401);
-    const info = authManager.parseSessionToken(apiRequest.authToken);
-    if (!info.valid) return void apiRequest.sendError('Invalid session', 401);
-    const user = await userManager.getUserById(info.content.uuid);
-    if (!user) return void apiRequest.sendError('User not found', 404);
-    if (!user.permissions.admin && !user.permissions.login) return apiRequest.sendError('the user have`t permission to login', 401);
+    middleware.isLoggedInAsserts(apiRequest.state);
+    const user = apiRequest.state.loggedUser;
+    if (!user.permissions.admin && !user.permissions.login) throw new ServerError('Not authorized', 403);
     apiRequest.authToken = apiRequest.generateSessionToken(user);
     apiRequest.send({
         user: user.publicData,

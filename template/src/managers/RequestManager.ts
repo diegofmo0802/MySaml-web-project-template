@@ -1,15 +1,17 @@
 import ServerCore from "saml.servercore";
-import authManager from "../config/authManager.js";
-import User from "../managers/UserManager/User.js";
+import authManager from "config/authManager.js";
+import User from "managers/UserManager/User.js";
 import AuthManager from "managers/AuthManager.js";
 import FS from "fs";
 
 export class RequestManager {
-    private sended: boolean = false;
+    private _sended: boolean = false;
     public constructor(
         public readonly request: ServerCore.Request,
-        private readonly response: ServerCore.Response
+        private readonly response: ServerCore.Response,
+        public readonly state: ServerCore.Router.Middleware.State
     ) {}
+    public get sended(): boolean { return this._sended; }
     public get ruleParams(): ServerCore.Router.Rule.ruleParams { return this.request.ruleParams; }
     public get searchParams(): ServerCore.Request.SearchParams { return this.request.searchParams; }
     public get post(): Promise<ServerCore.Request.BodyParser.Body> { return this.request.post; }
@@ -24,14 +26,14 @@ export class RequestManager {
         });
     }
     public sendCustom(data: string | Buffer | FS.ReadStream, code: number = 200): void {
-        if (this.sended) throw new Error("Response already sended");
-        this.sended = true;
+        if (this._sended) throw new Error("Response already sended");
+        this._sended = true;
         this.response.send(data);
     }
     public send<result>(result: result, options: ServerCore.Response.options = {}): void {
-        if (this.sended) throw new Error("Response already sended");
+        if (this._sended) throw new Error("Response already sended");
         const status = options.status ?? 200;
-        this.sended = true;
+        this._sended = true;
         const data: RequestManager.response<result> = {
             success: true,
             code: status,
@@ -40,21 +42,21 @@ export class RequestManager {
         this.response.sendJson(data, { status: status, headers: options.headers });
     }
     public sendFile(path: string): void {
-        if (this.sended) throw new Error("Response already sended");
-        this.sended = true;
+        if (this._sended) throw new Error("Response already sended");
+        this._sended = true;
         this.response.sendFile(path);
     }
     public unAuthorized(message: string = 'Unauthorized'): void {
         this.sendError(message, 401);
     }
     public redirect(url: string): void {
-        if (this.sended) throw new Error("Response already sended");
-        this.sended = true;
+        if (this._sended) throw new Error("Response already sended");
+        this._sended = true;
         this.response.send('', { status: 302, headers: { location: url } });
     }
     public sendError(reason: string, code: number = 500): void {
-        if (this.sended) throw new Error("Response already sended");
-        this.sended = true;
+        if (this._sended) throw new Error("Response already sended");
+        this._sended = true;
         const data: RequestManager.error = {
             success: false,
             code: code,

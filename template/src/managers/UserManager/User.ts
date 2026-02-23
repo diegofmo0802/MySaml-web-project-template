@@ -1,108 +1,77 @@
-import { Utilities } from "saml.servercore";
-import { user } from "../../config/dbSchema.js";
-import UserManager from "./UserManager.js";
+import type schemas from 'config/dbScheme.js';
 
-export class User implements User.data {
-    public readonly _id: string;
-    protected readonly userManager: UserManager;
-    protected _profile!: User.profile;
-    protected _email!: User.email;
-    protected _auth!: User.auth;
-    protected _permissions!: User.Permission;
-    public toUpdate!: User.updateData;
-    public constructor(userManager: UserManager, data: User.data) {
-        this.userManager = userManager;
-        this._id = data._id;
-        this.setData(data);
+import { CRUDObject } from 'helper/CRUDManager/CRUDManager.js';
+
+import _Profile from './Profile.js';
+import _Email from './Email.js';
+import _Auth from './Auth.js';
+import _Permissions from './Permissions.js';
+import type UserManager from './UserManager.js';
+
+export { Profile } from './Profile.js';
+export { Email } from './Email.js';
+export { Auth } from './Auth.js';
+export { Permissions } from './Permissions.js';
+
+export class User extends CRUDObject<schemas, User.data, User.create, User.update, UserManager> implements User.data {
+    public profile: User.Profile;
+    public email: User.Email;
+    public auth: User.Auth;
+    public permissions: User.Permissions;
+    public constructor( manager: UserManager, data: User.data) { super(manager, data);
+        this.profile = new User.Profile(this, data.profile);
+        this.email = new User.Email(this, data.email);
+        this.auth = new User.Auth(this, data.auth);
+        this.permissions = new User.Permissions(this, data.permissions);
     }
-    /**
-     * Set data for the user.
-     * @param data - The data to set.
-     */
-    protected setData(data: User.data): void {
-        this._profile = this.makeProxy('profile', data.profile);
-        this._email = this.makeProxy('email', data.email);
-        this._auth = this.makeProxy('auth', data.auth);
-        this._permissions = this.makeProxy('permissions', data.permissions);
-        this.toUpdate = {};
-    }
-    public get profile(): User.profile { return this._profile; }
-    public get auth(): User.auth { return this._auth; }
-    public get email(): User.email { return this._email; }
-    public get permissions(): User.Permission { return this._permissions; }
-    public set profile(profile: Partial<User.profile>) { this.toUpdate.profile = profile; }
-    public set auth(auth: Partial<User.auth>) { this.toUpdate.auth = auth; }
-    public set email(email: Partial<User.email>) { this.toUpdate.email = email; }
-    public set permissions(permissions: Partial<User.Permission>) { this.toUpdate.permissions = permissions; }
+    public get _id(): string { return this.data._id; }
     public get publicData(): User.publicData {
-        const { _id, profile, email, permissions } = this;
-        return { _id, profile, email, permissions };
+        const { auth, ...data } = this.data;
+        return data;
     }
     /**
-     * Check if there are any changes to the database.
-     * @returns true if there are changes, false otherwise.
+     * Updates a user.
+     * @param data The data to update.
+     * @returns The updated user.
      */
-    public needUpdate(): boolean { return Object.keys(this.toUpdate).length > 0; }
-    /**
-     * Cancel changes to the database.
-     */
-    public cancelChanges(): void { this.toUpdate = {}; }
-    /**
-     * Save changes to the database.
-     * @throws Error if user not found or failed to update.
-     */
-    public async saveChanges(): Promise<this> {
-        if (!this.needUpdate()) return this;
-        return await this.userManager.collection.transaction(async (db, collection) => {
-            const toUpdate = Utilities.flattenObject(this.toUpdate);
-            const update = await collection.updateOne({ _id: this._id }, { $set: toUpdate });
-            const newData = await collection.findOne({ _id: update.upsertedId ?? this._id });
-            if (!newData) throw new Error('User not found');
-            this.setData(newData);
-            return this;
-        });
+    public async update(data: User.update): Promise<void> {
+        const result = await this.manager.update(this._id, data);
+        this.data = result.data;
+    }
+    /** Deletes a user. */
+    public async delete(): Promise<void> {
+        await this.manager.delete(this._id);
     }
     /**
-     * Wrap an object in a proxy to detect property changes and track updates.
-     * @param key - The key associated with the update.
-     * @param value - The object to wrap in a proxy.
-     * @returns A proxied version of the object.
+     * Returns the data of the user.
+     * @returns The data of the user.
      */
-    private makeProxy<T extends object>(key: keyof User.updateData, value: T): T {
-        const self = this;
-        return new Proxy(value, {
-            set(target, prop: string, value) {
-                const current = target[prop as keyof T];
-                if (current !== value) {
-                    target[prop as keyof T] = value;
-                    if (!self.toUpdate[key] && key !== '_id') self.toUpdate[key] = {};
-                    (self.toUpdate[key] as any)[prop] = value;
-                }
-                return true;
-            }
-        });
-    }
+    public toJSON() { return this.data; }
 }
 export namespace User {
+    export import Profile = _Profile;
+    export import Email = _Email;
+    export import Auth = _Auth;
+    export import Permissions = _Permissions;
+
     type PartialRecursive<T> = {
         [K in keyof T]?: T[K] extends object ? PartialRecursive<T[K]> : T[K];
     };
+    export type data = schemas['user']['infer'];
     export type publicData = Omit<data, 'auth'>;
-    export type data = typeof user.infer;
-    export type profile = data['profile'];
-    export type email = data['email'];
-    export type auth = data['auth'];
-    export type Permission = data['permissions'];
-    export type updateData = PartialRecursive<data>;
-    export interface newUser {
+    export type updateData = PartialRecursive<Omit<data, '_id'>>;
+    export type update = PartialRecursive<Omit<data, '_id' | 'auth' | 'profile'> & {
+        auth: Auth.update,
+        profile: Profile.update
+    }>;
+    export type create = {
         username: string;
+        email: string;
+        password: string;
         name?: string;
         bio?: string;
-        avatar?: Buffer;
-        email: string;
         phone?: string;
-        address?: string;
-        password: string;
-    }
+        avatar?: Buffer;
+    };
 }
-export default User;
+export default User

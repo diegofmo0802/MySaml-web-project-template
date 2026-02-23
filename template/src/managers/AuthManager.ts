@@ -1,5 +1,6 @@
 import { Beta } from 'saml.servercore';
-import Auth from '../helpers/Auth.js';
+import Auth from 'helper/Auth.js';
+
 
 export class AuthManager {
     public jwt: Beta.JwtManager;

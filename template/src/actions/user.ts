@@ -1,94 +1,77 @@
-import userManager from '../config/userManager.js';
-import debug from '../config/debug.js';
+import { ServerError } from 'saml.servercore';
 
-import Avatar from '../helpers/Avatar.js';
-import Image from '../helpers/Image.js';
+import userManager from 'config/userManager.js';
+import { getPaginationAsserts, isLoggedInAsserts } from 'config/middleware.js';
 
-import RequestManager from '../managers/RequestManager.js';
+import Avatar from 'helper/Avatar.js';
+
+import RequestManager from 'managers/RequestManager.js';
+import User from 'managers/UserManager/User.js';
 
 export async function getAvatar(apiRequest: RequestManager) {
     const { uuid, avatarID } = apiRequest.ruleParams;
-    if (uuid == null || avatarID == null) return void apiRequest.sendError('missing arguments', 400);
-    const path = Avatar.getPath(uuid, avatarID);
+    if (uuid == null) throw new ServerError('missing argument uuid', 400);
+    if (avatarID == null) throw new ServerError('missing argument avatarID', 400);
+
     const avatar = await Avatar.get(uuid, avatarID);
-    if (avatar == null) return void apiRequest.sendError('avatar not found', 404);
-    return apiRequest.sendCustom(avatar);
+    if (avatar == null) throw new ServerError('avatar not found', 404);
+
+    apiRequest.sendCustom(avatar);
 }
 
 export async function getUser(apiRequest: RequestManager) {
     const { uuid } = apiRequest.ruleParams;
-    if (uuid == null) return void apiRequest.sendError('missing arguments', 400);
-    const user = await userManager.getUserById(uuid);
-    if (user == null) return void apiRequest.sendError('user not found', 404);
-    return apiRequest.send(user.publicData);
+    if (uuid == null) throw new ServerError('missing argument uuid', 400);
+    
+    const user = await userManager.getById(uuid);
+    if (user == null) throw new ServerError('user not found', 404);
+
+    apiRequest.send(user.publicData);
 }
 
 
 export async function getUsers(apiRequest: RequestManager) {
-    const pageParam = apiRequest.ruleParams.Page ?? apiRequest.searchParams.page;
-    const limitParam = apiRequest.searchParams.limit;
-    if (!pageParam) return void apiRequest.sendError('no page provided');
-    if (!limitParam) return void apiRequest.sendError('no limit provided');
-    const page = parseInt(pageParam);
-    const limit = parseInt(limitParam);
-    if (isNaN(page) || isNaN(limit)) return void apiRequest.sendError('invalid page or limit');
-    if (page < 1) return void apiRequest.sendError('page must be greater than 0');
-    if (limit < 1) return void apiRequest.sendError('limit must be greater than 0');
-    const result = await userManager.getUsers(page, limit);
+    getPaginationAsserts(apiRequest.state);
+    const { page, limit } = apiRequest.state;
+
+    const result = await userManager.getAll(page, limit);
     const users = result.map(user => user.publicData);
     apiRequest.send({ page, limit, count: users.length, users });
 }
 
 export async function editUser(apiRequest: RequestManager) {
-    const session = apiRequest.session;
-    if (session == null || session.valid == false) return apiRequest.unAuthorized();
-    const loggedUser = await userManager.getUserById(session.content.uuid);
-    if (loggedUser == null) return apiRequest.unAuthorized();
-
+    isLoggedInAsserts(apiRequest.state);
+    const { loggedUser } = apiRequest.state;
     const { uuid } = apiRequest.ruleParams;
-    if (uuid == null) return void apiRequest.sendError('missing arguments', 400);
-    if (!loggedUser.permissions.admin && loggedUser._id != uuid) return apiRequest.unAuthorized();
+    if (uuid == null) throw new ServerError('missing argument uuid', 400);
 
     const body = await apiRequest.post;
-    if (body.mimeType !== 'multipart/form-data') return void apiRequest.sendError('no body provided', 400);
-    const user = loggedUser._id == uuid ? loggedUser : await userManager.getUserById(uuid);
-    if (user == null) return void apiRequest.sendError('user not found', 404);
-    /* Profile updates */
-    const { username = null, name = null, bio = null } = body.content
-    const { avatar = null } = body.files;
-    console.log(avatar);
-    if (username != null) {
-        if (!userManager.isValidUsernames(username)) return void apiRequest.sendError('invalid username', 400);
-        const existUser = await userManager.getUserByUsername(username);
-        if (existUser != null) return void apiRequest.sendError('username already exists', 400);
-        user.profile.username = username;
-    }
-    if (name != null) {
-        if (!userManager.isValidName(name)) return void apiRequest.sendError('invalid name', 400);
-        user.profile.name = ['', 'null'].includes(name) ? null : name;
-    }
-    if (bio != null) {
-        if (!userManager.isValidBio(bio)) return void apiRequest.sendError('invalid bio', 400);
-        user.profile.bio = ['', 'null'].includes(bio) ? null : bio;
-    }
-    if (avatar != null) {
-        const MAX_SIZE = (1024 * 1024) * 4;
-        if (avatar.size > MAX_SIZE) return void apiRequest.sendError('Avatar size is too big', 400);
-        if (!Image.isImageFile(avatar.content, ['jpeg', 'jpg', 'png'])) return void apiRequest.sendError('Invalid avatar format', 400);
-        try {
-            const avatarID = await Avatar.save(uuid, avatar.content);
-            const avatarUrl = Avatar.getUrl(uuid, avatarID);
-            user.profile.avatar = avatarUrl;
-        } catch (error) {
-            debug.error(error);
-            return 'api.auth.register.avatar-error';
-        }
-    }
-    try {
-        if (user.needUpdate()) await user.saveChanges();
-        apiRequest.send(user.publicData);
-    } catch(err) {
-        debug.error(err);
-        apiRequest.sendError('error updating user', 500);
-    }
+    if (body.mimeType !== 'multipart/form-data') throw new ServerError('unsupported mime type for this endpoint', 400);
+
+    const user = loggedUser._id == uuid ? loggedUser : await userManager.getById(uuid);
+    if (user == null) throw new ServerError('user not found', 404);
+
+    const { username, name, bio, email, password, rmAvatar = false } = body.content
+    const { avatar } = body.files;
+
+    const profile: User.update['profile'] = {};
+    const emailUpdate: User.update['email'] = {};
+    const authUpdate: User.update['auth'] = {};
+
+    if (username) profile.username = username;
+    if (name) profile.name = name;
+    if (bio) profile.bio = bio;
+    if (email) emailUpdate.address = email;
+    if (password) authUpdate.password = password;
+    if (rmAvatar) profile.avatar = undefined;
+    else if (avatar) profile.avatar = avatar;
+
+    const update: User.update = {};
+    if (Object.keys(profile).length > 0) update.profile = profile;
+    if (Object.keys(emailUpdate).length > 0) update.email = emailUpdate;
+    if (Object.keys(authUpdate).length > 0) update.auth = authUpdate;
+    if (Object.keys(update).length == 0) throw new ServerError('no update provided', 400);
+    
+    await user.update(update);
+    apiRequest.send(user.publicData);
 }
