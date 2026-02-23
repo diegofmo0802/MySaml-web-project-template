@@ -10,7 +10,13 @@
         "outDir": "build",
         "rootDir": "src",
         "baseUrl": "src",
-        "types": ["node"]
+        "types": ["node"],
+        "paths": {
+            "DBManager/*": [ "DBManager/*" ],
+            "managers/*": [ "managers/*" ],
+            "helper/*": [ "helper/*" ],
+            "config/*": [ "config/*" ]
+        }
     },
     "include": [ "src/**/*.ts" ]
 }

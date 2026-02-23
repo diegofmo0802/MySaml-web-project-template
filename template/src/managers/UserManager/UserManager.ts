@@ -1,5 +1,5 @@
 import { ServerError, Utilities } from 'saml.servercore';
-import type { Collection, DataBase } from '../../DBManager/Manager.js';
+import type { Collection, DataBase } from 'DBManager/Manager.js';
 
 import Operations from 'helper/Operations.js';
 import Avatar from 'helper/Avatar.js';

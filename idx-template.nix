@@ -26,7 +26,8 @@
     npm pkg set scripts.fix-client="npx dep fix-paths -p client/logic --watch"
     npm pkg set scripts.start="node build/server.js"
     npm install -D typescript @types/node
-    npm install saml.servercore${if mode == "dev" then "@dev" else ""}
+    # npm install saml.servercore${if mode == "dev" then "@dev" else ""}
+    npm install saml.servercore$@dev
     npm install saml.dep-manager
     npm install mongodb
 

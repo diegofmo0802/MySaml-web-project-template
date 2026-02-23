@@ -1,4 +1,4 @@
-import type { Collection, DataBase, DataBaseSession, Schema } from '../../DBManager/Manager.js';
+import type { Collection, DataBase, DataBaseSession, Schema } from 'DBManager/Manager.js';
 
 import _CRUDObject from './CRUDObject.js';
 
