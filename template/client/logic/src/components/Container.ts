@@ -16,11 +16,6 @@ export class Container extends Component<'div'> {
         this.root.append(...elements);
     }
     /**
-     * Appends elements to the container.
-     * @param elements The elements to append to the container.
-     */
-    public append(...elements: Element.ChildType[]): void { this.root.append(...elements); }
-    /**
      * Removes all elements from the container.
      */
     public clean(): void { this.root.clean(); }
