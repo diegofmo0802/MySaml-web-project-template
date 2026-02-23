@@ -12,7 +12,7 @@
 .mongodb/var
 
 # Dependencies of repositories
-src/db-manager/
+src/DBManager/
 src/QR-Code/
 client/logic/src/WebApp/
 client/logic/src/QR-Code/
