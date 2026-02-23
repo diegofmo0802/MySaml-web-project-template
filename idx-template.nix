@@ -22,8 +22,8 @@
     npm pkg set scripts.build="npm install && npx dep install && npm run compile"
     npm pkg set scripts.dev="npx tsc --watch"
     npm pkg set scripts.dev-client="npx tsc -p client/logic --watch"
-    npm pkg set scripts.dev.fixer="npx dep fix-paths --watch"
-    npm pkg set scripts.dev-client.fixer="npx dep fix-paths -p client/logic --watch"
+    npm pkg set scripts["dev.fixer"]="npx dep fix-paths --watch"
+    npm pkg set scripts["dev-client.fixer"]="npx dep fix-paths -p client/logic --watch"
     npm pkg set scripts.start="node build/server.js"
     npm install -D typescript @types/node
     # npm install saml.servercore${if mode == "dev" then "@dev" else ""}
