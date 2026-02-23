@@ -117,7 +117,7 @@ export class UserManager extends CRUDManager<schemas, UserManager.User.data, Use
      * @param filter The filter to get the user with.
      * @returns The user.
      */
-    public async operationGet(db: UserManager.db, collection: UserManager.collection, filter: Collection.Filter<schemas['client']['schema']> = {}, page: number = 1, limit: number = 10): Promise<UserManager.User[]> {
+    public async operationGet(db: UserManager.db, collection: UserManager.collection, filter: Collection.Filter<schemas['user']['schema']> = {}, page: number = 1, limit: number = 10): Promise<UserManager.User[]> {
         const result = await db.collection('user').aggregate([
             { $match: filter },
             { $skip: (page - 1) * limit },
