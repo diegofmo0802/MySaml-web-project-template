@@ -16,8 +16,6 @@ export const user = new Schema({
         verifyToken: { type: 'string', nullable: true, default: null }
     } },
     auth: { type: 'object', required: true, schema: {
-        verified:     { type: 'boolean', required: true, default: false },
-        verifyToken:  { type: 'string', nullable: true },
         passwordHash: { type: 'string', required: true, minLength: 256, maxLength: 256 },
         passwordSalt: { type: 'string', required: true, minLength: 32, maxLength: 32 }
     } },
