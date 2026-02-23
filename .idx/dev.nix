@@ -19,7 +19,17 @@
       enable = true;
       previews = {
         web = {
-          command = ["npm" "start"];
+          command = [
+            "sh" "-c"
+            ''
+              echo "⏳ waiting for mongo service...";
+              until mongo --quiet --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
+                sleep 1;
+              done
+              echo "✅ mongo db now is running";
+              npm start
+            ''
+          ];
           manager = "web";
           env = {
             PORT = "$PORT";
