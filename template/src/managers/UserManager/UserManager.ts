@@ -6,7 +6,7 @@ import Avatar from 'helper/Avatar.js';
 import Image from 'helper/Image.js';
 import CRUDManager from 'helper/CRUDManager/CRUDManager.js';
 
-import type schemas from 'config/dbScheme.js';
+import type schemas from 'config/dbSchema.js';
 import authManager from 'config/authManager.js';
 
 import _User from './User.js';

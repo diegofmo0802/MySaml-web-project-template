@@ -1,4 +1,4 @@
-import type schemas from 'config/dbScheme.js';
+import type schemas from 'config/dbSchema.js';
 
 import { CRUDObject } from 'helper/CRUDManager/CRUDManager.js';
 

@@ -1,4 +1,4 @@
-import { Schema } from '../db-manager/Manager.js';
+import { Schema } from 'DBManager/Manager.js';
 
 export const user = new Schema({
     _id: { type: 'string', required: true, unique: true, minLength: 36, maxLength: 36 },

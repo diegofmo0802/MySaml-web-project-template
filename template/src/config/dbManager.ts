@@ -1,4 +1,4 @@
-import Manager from '../db-manager/Manager.js';
+import Manager from 'DBManager/Manager.js';
 import Schemas from './dbSchema.js';
 import { database } from './env.js';
 

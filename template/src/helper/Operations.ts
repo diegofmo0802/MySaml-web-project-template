@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Collection, Schema } from 'DBManager/Manager.js';
-import schemas from 'config/dbScheme.js';
+
+import schemas from 'config/dbSchema.js';
 
 export class Operations {
     /**
