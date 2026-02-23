@@ -29,7 +29,7 @@
         "name": "db-manager",
         "repo": "https://github.com/diegofmo0802/db-manager.git",
         "out": {
-            "src/": "src/db-manager"
+            "src/": "src/DBManager"
         }
     }
 ]
